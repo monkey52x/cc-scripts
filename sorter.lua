@@ -65,14 +65,14 @@ while true do
             -- Move item to the appropriate chest
             local targetChest = hasFilterTag and matchChest or noMatchChest
             local targetChestName = hasFilterTag and "left" or "top"
-            local itemName = itemDetail.displayName or itemDetail.name or "Unknown"
+            local itemId = itemDetail.name or "Unknown"
 
             -- Attempt to push the item
             local moved = inputChest.pushItems(peripheral.getName(targetChest), slot, item.count)
             if moved > 0 then
-                print("Moved " .. moved .. "x " .. itemName .. " to " .. targetChestName .. " chest")
+                print("Moved " .. moved .. "x " .. itemId .. " to " .. targetChestName .. " chest")
             else
-                print("Failed to move " .. itemName .. " to " .. targetChestName .. " chest")
+                print("Failed to move " .. itemId .. " to " .. targetChestName .. " chest")
             end
         else
             print("Failed to get details for item in slot " .. slot)
