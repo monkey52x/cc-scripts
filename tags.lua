@@ -14,17 +14,21 @@ for slot=1, input.size() do
     print("Count: "..tostring(item.count))
     print("Damage: "..tostring(item.damage or 0))
     
-    -- Проверяем NBT
+    -- Проверка NBT
     if item.nbt then
-      print("NBT:")
-      for k,v in pairs(item.nbt) do
-        print("  "..tostring(k)..": "..textutils.serialize(v))
+      if type(item.nbt) == "table" then
+        print("NBT (table):")
+        for k,v in pairs(item.nbt) do
+          print("  "..tostring(k)..": "..textutils.serialize(v))
+        end
+      else
+        print("NBT (string): "..tostring(item.nbt))
       end
     else
       print("NBT: none")
     end
 
-    -- Если есть тег (через Advanced Peripherals / ME-Bridge)
+    -- Теги (если есть)
     if item.tags then
       print("Tags:")
       for i, tag in ipairs(item.tags) do
