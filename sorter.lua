@@ -1,8 +1,8 @@
 -- Configuration
 local inputChest = peripheral.wrap("right")  -- Chest with input items
-local matchChest = peripheral.wrap("top")    -- Chest for items matching tags from tags.txt
-local noMatchChest = peripheral.wrap("left") -- Chest for items not matching tags
-local tagFile = "tags.txt"                  -- File for both filter tags and storing unique tags
+local matchChest = peripheral.wrap("left")   -- Chest for items matching tags from tags.txt
+local noMatchChest = peripheral.wrap("top")  -- Chest for items not matching tags
+local tagFile = "tags.txt"                  -- File with filter tags
 local checkInterval = 0.1                   -- Interval between checks (in seconds)
 
 -- Check if all chests are connected
@@ -11,11 +11,11 @@ if inputChest == nil then
     return
 end
 if matchChest == nil then
-    print("Error: Match chest (top) not found!")
+    print("Error: Match chest (left) not found!")
     return
 end
 if noMatchChest == nil then
-    print("Error: No-match chest (left) not found!")
+    print("Error: No-match chest (top) not found!")
     return
 end
 
@@ -32,44 +32,17 @@ if file then
     end
     file.close()
 else
-    print("Warning: " .. tagFile .. " not found, creating an empty one")
-    file = fs.open(tagFile, "w")
-    file.close()
+    print("Error: " .. tagFile .. " not found!")
+    return
 end
 
--- Function to append new tags to tags.txt
-local function appendTagsToFile(tags)
-    -- Read existing tags from file
-    local existingTags = {}
-    for tag, _ in pairs(filterTags) do
-        existingTags[tag] = true
-    end
-
-    -- Check for new tags
-    local newTags = {}
-    for tag, _ in pairs(tags) do
-        if not existingTags[tag] then
-            newTags[tag] = true
-            filterTags[tag] = true  -- Update filterTags for future checks
-        end
-    end
-
-    -- If there are new tags, append them to file
-    if next(newTags) then
-        file = fs.open(tagFile, "a")
-        if not file then
-            print("Error: Could not open " .. tagFile .. " for writing!")
-            return
-        end
-        for tag, _ in pairs(newTags) do
-            file.writeLine(tag)
-        end
-        file.close()
-    end
+-- Check if any tags were loaded
+if next(filterTags) == nil then
+    print("Error: No tags found in " .. tagFile .. "!")
+    return
 end
 
 -- Main loop
-print("Sorting started. Press Ctrl+C to stop.")
 while true do
     -- Get list of items in the input chest
     local items = inputChest.list()
@@ -78,11 +51,6 @@ while true do
     for slot, item in pairs(items) do
         local itemDetail = inputChest.getItemDetail(slot)
         if itemDetail then
-            -- Save new tags to tags.txt
-            if itemDetail.tags then
-                appendTagsToFile(itemDetail.tags)
-            end
-
             -- Check if the item has any of the filter tags
             local hasFilterTag = false
             if itemDetail.tags then
@@ -96,7 +64,7 @@ while true do
 
             -- Move item to the appropriate chest
             local targetChest = hasFilterTag and matchChest or noMatchChest
-            local targetChestName = hasFilterTag and "top" or "left"
+            local targetChestName = hasFilterTag and "left" or "top"
             local itemName = itemDetail.displayName or itemDetail.name or "Unknown"
 
             -- Attempt to push the item
