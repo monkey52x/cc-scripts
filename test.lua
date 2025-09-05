@@ -1,19 +1,19 @@
 -- Configuration
-local inputChest = peripheral.wrap("right")  -- Input inventory for items (via pipes/funnels, optional)
-local matchChest = peripheral.wrap("left")   -- Output for items matching tags
-local noMatchChest = peripheral.wrap("top")  -- Optional output for non-matching items
-local tagFile = "tags.txt"                  -- File with filter tags
-local checkInterval = 0.1                   -- Interval between checks (in seconds)
+local inputInventory = peripheral.wrap("right")  -- Any inventory for input items (right, optional)
+local matchInventory = peripheral.wrap("left")   -- Output for items matching tags
+local noMatchInventory = peripheral.wrap("top")  -- Optional output for non-matching items
+local tagFile = "tags.txt"                      -- File with filter tags
+local checkInterval = 0.1                       -- Interval between checks (in seconds)
 
 -- Check if required output inventory is connected
-if matchChest == nil then
+if matchInventory == nil then
     print("Error: Output inventory (left) not found!")
     return
 end
 
 -- Check if no-match inventory (top) is connected and set mode
-local useTopChest = noMatchChest ~= nil
-if useTopChest then
+local useTopInventory = noMatchInventory ~= nil
+if useTopInventory then
     print("Started in full filter mode: Matching items go to left, others to top")
 else
     print("Started in pass-only mode: Matching items go to left, others stay in input")
@@ -45,16 +45,16 @@ end
 -- Main loop
 while true do
     -- Check for input inventory dynamically
-    inputChest = peripheral.wrap("right")
-    if inputChest == nil then
+    inputInventory = peripheral.wrap("right")
+    if inputInventory == nil then
         print("No input inventory (right) detected, waiting...")
     else
         -- Get list of items in the input inventory
-        local items = inputChest.list()
+        local items = inputInventory.list()
 
         -- Process each item in the input inventory
         for slot, item in pairs(items) do
-            local itemDetail = inputChest.getItemDetail(slot)
+            local itemDetail = inputInventory.getItemDetail(slot)
             if itemDetail then
                 -- Check if the item has any of the filter tags
                 local hasFilterTag = false
@@ -68,17 +68,17 @@ while true do
                 end
 
                 -- Move only if it matches or if top inventory exists for non-matching
-                if hasFilterTag or useTopChest then
-                    local targetChest = hasFilterTag and matchChest or noMatchChest
-                    local targetChestName = hasFilterTag and "left" or "top"
+                if hasFilterTag or useTopInventory then
+                    local targetInventory = hasFilterTag and matchInventory or noMatchInventory
+                    local targetInventoryName = hasFilterTag and "left" or "top"
                     local itemId = itemDetail.name or "Unknown"
 
                     -- Attempt to push the item
-                    local moved = inputChest.pushItems(peripheral.getName(targetChest), slot, item.count)
+                    local moved = inputInventory.pushItems(peripheral.getName(targetInventory), slot, item.count)
                     if moved > 0 then
-                        print("Moved " .. moved .. "x " .. itemId .. " to " .. targetChestName)
+                        print("Moved " .. moved .. "x " .. itemId .. " to " .. targetInventoryName)
                     else
-                        print("Failed to move " .. itemId .. " to " .. targetChestName)
+                        print("Failed to move " .. itemId .. " to " .. targetInventoryName)
                     end
                 end
             else
