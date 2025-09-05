@@ -1,12 +1,12 @@
--- Подключаем сундук справа
+-- Connect to the chest on the right
 local input = peripheral.wrap("right")
 if not input then
-  print("Сундук справа не найден!")
+  print("Right chest not found!")
   return
 end
 
--- Проверяем слоты сундука
-for slot=1, input.size() do
+-- Loop through all slots in the chest
+for slot = 1, input.size() do
   local item = input.getItemDetail(slot)
   if item then
     print("---- Slot "..slot.." ----")
@@ -14,7 +14,7 @@ for slot=1, input.size() do
     print("Count: "..tostring(item.count))
     print("Damage: "..tostring(item.damage or 0))
     
-    -- Проверка NBT
+    -- NBT check
     if item.nbt then
       if type(item.nbt) == "table" then
         print("NBT (table):")
@@ -28,7 +28,7 @@ for slot=1, input.size() do
       print("NBT: none")
     end
 
-    -- Теги (если есть)
+    -- Tags check
     if item.tags then
       print("Tags:")
       for i, tag in ipairs(item.tags) do
@@ -38,6 +38,6 @@ for slot=1, input.size() do
       print("Tags: none")
     end
   else
-    print("Слот "..slot.." пуст")
+    print("Slot "..slot.." is empty")
   end
 end
