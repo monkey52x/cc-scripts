@@ -1,14 +1,18 @@
--- Подключаем инвентарь компьютера
-local chest = peripheral.wrap("left")  -- сундук слева
+-- Получаем сундук слева
+local chest = peripheral.wrap("left")
 
--- Функция, которая переносит все предметы из инвентаря компьютера в сундук
+-- Функция для передачи предметов из компьютера в сундук
 function transferAll()
-    for slot = 1, 16 do  -- у компьютера 16 слотов
-        local item = turtle.getItemDetail(slot)
+    local inv = peripheral.wrap("back") -- если нужен инвентарь за компьютером
+    if not inv then
+        print("Инвентаря нет")
+        return
+    end
+
+    for slot = 1, inv.size() do
+        local item = inv.getItemDetail(slot)
         if item then
-            turtle.select(slot)
-            -- Пробуем положить предметы в сундук слева
-            turtle.drop()
+            inv.pushItems(peripheral.getName(chest), slot)
         end
     end
 end
@@ -16,5 +20,5 @@ end
 -- Основной цикл
 while true do
     transferAll()
-    sleep(1)  -- пауза 1 секунда, чтобы не нагружать процессор
+    sleep(1)
 end
