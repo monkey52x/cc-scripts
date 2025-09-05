@@ -1,11 +1,11 @@
 -- Configuration
 local inputChest = peripheral.wrap("right")  -- Chest with input items
 local matchChest = peripheral.wrap("left")   -- Chest for items matching tags from tags.txt
-local noMatchChest = peripheral.wrap("top")  -- Chest for items not matching tags
+local noMatchChest = peripheral.wrap("top")  -- Chest for items not matching tags (optional)
 local tagFile = "tags.txt"                  -- File with filter tags
 local checkInterval = 0.1                   -- Interval between checks (in seconds)
 
--- Check if all chests are connected
+-- Check if required chests are connected
 if inputChest == nil then
     print("Error: Input chest (right) not found!")
     return
@@ -14,9 +14,13 @@ if matchChest == nil then
     print("Error: Match chest (left) not found!")
     return
 end
-if noMatchChest == nil then
-    print("Error: No-match chest (top) not found!")
-    return
+
+-- Check if no-match chest (top) is connected and set mode
+local useTopChest = noMatchChest ~= nil
+if useTopChest then
+    print("Started in full sorting mode: Items with tags go to left chest, others to top chest")
+else
+    print("Started in partial sorting mode: Items with tags go to left chest, others stay in right chest")
 end
 
 -- Read tags from tags.txt
@@ -62,17 +66,19 @@ while true do
                 end
             end
 
-            -- Move item to the appropriate chest
-            local targetChest = hasFilterTag and matchChest or noMatchChest
-            local targetChestName = hasFilterTag and "left" or "top"
-            local itemId = itemDetail.name or "Unknown"
+            -- Only move items if they match tags or if top chest exists for non-matching items
+            if hasFilterTag or useTopChest then
+                local targetChest = hasFilterTag and matchChest or noMatchChest
+                local targetChestName = hasFilterTag and "left" or "top"
+                local itemId = itemDetail.name or "Unknown"
 
-            -- Attempt to push the item
-            local moved = inputChest.pushItems(peripheral.getName(targetChest), slot, item.count)
-            if moved > 0 then
-                print("Moved " .. moved .. "x " .. itemId .. " to " .. targetChestName .. " chest")
-            else
-                print("Failed to move " .. itemId .. " to " .. targetChestName .. " chest")
+                -- Attempt to push the item
+                local moved = inputChest.pushItems(peripheral.getName(targetChest), slot, item.count)
+                if moved > 0 then
+                    print("Moved " .. moved .. "x " .. itemId .. " to " .. targetChestName .. " chest")
+                else
+                    print("Failed to move " .. itemId .. " to " .. targetChestName .. " chest")
+                end
             end
         else
             print("Failed to get details for item in slot " .. slot)
