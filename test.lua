@@ -1,39 +1,47 @@
--- Проверяем периферию на наличие модема
-local sides = {"top","bottom","left","right","front","back"}
-local modemSide = nil
-
-for _, side in ipairs(sides) do
-  if peripheral.getType(side) == "modem" then
-    modemSide = side
-    break
-  end
-end
-
-if not modemSide then
-  print("No modem found.")
-  return
-end
-
-print("Modem found on side: "..modemSide)
-
--- Проверка, есть ли проводные или беспроводные подключения
-local modem = peripheral.wrap(modemSide)
-
-if modem.isWireless and modem.isWireless() then
-  print("This is a wireless modem.")
+-- Find all connected peripherals
+local peripherals = peripheral.getNames()
+if #peripherals == 0 then
+    print("No peripherals connected.")
 else
-  print("This is a wired modem.")
+    print("Connected peripherals:")
+    for i, name in ipairs(peripherals) do
+        local pType = peripheral.getType(name)
+        print(i..". "..name.." ("..tostring(pType)..")")
+    end
 end
 
--- Список подключённых периферий через модем (только wired)
-if not modem.isWireless or not modem.isWireless() then
-  local connected = modem.getNamesRemote()
-  if #connected == 0 then
-    print("No peripherals connected to this modem.")
-  else
-    print("Peripherals connected via modem:")
-    for i, name in ipairs(connected) do
-      print(i..". "..name.." ("..peripheral.getType(name)..")")
+print("\nScanning containers...\n")
+
+-- Function to print items in a container
+local function printContainer(name)
+    if not peripheral.hasType(name, "inventory") and not peripheral.hasType(name, "chest") then
+        return
     end
-  end
+
+    local container = peripheral.wrap(name)
+    if not container then return end
+
+    local size = container.size and container.size() or 0
+    if size == 0 then
+        print(name.." is empty or not a container.")
+        return
+    end
+
+    print("Items in "..name..":")
+    for slot=1,size do
+        local item = container.getItemDetail(slot)
+        if item then
+            print(" Slot "..slot..": "..item.count.."x "..item.name)
+            if item.damage then print("   Damage: "..item.damage) end
+            if item.nbt then print("   NBT: "..textutils.serialize(item.nbt)) end
+            if item.tags then
+                print("   Tags: "..table.concat(item.tags,", "))
+            end
+        end
+    end
+end
+
+-- Scan all peripherals for containers
+for _, name in ipairs(peripherals) do
+    printContainer(name)
 end
